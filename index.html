@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WriteAI — AI Content Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c27;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#7c5cfc;--accent2:#c084fc;--text:#f0f0f8;--muted:#7a7a9a;--success:#34d399;--radius:14px; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.9);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+  .logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+  .logo span{color:var(--accent2)}
+  .nav-badge{background:rgba(124,92,252,0.15);color:var(--accent2);border:1px solid rgba(124,92,252,0.3);padding:5px 14px;border-radius:999px;font-size:12px;font-weight:500}
+  .hero{text-align:center;padding:70px 20px 50px;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(124,92,252,0.18) 0%,transparent 70%);pointer-events:none}
+  .hero-tag{display:inline-block;background:rgba(124,92,252,0.12);color:var(--accent2);border:1px solid rgba(192,132,252,0.25);padding:5px 16px;border-radius:999px;font-size:13px;margin-bottom:22px;font-weight:500}
+  .hero h1{font-family:'Syne',sans-serif;font-size:clamp(32px,6vw,58px);font-weight:800;line-height:1.1;margin-bottom:18px}
+  .hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hero p{color:var(--muted);font-size:17px;max-width:500px;margin:0 auto 10px;line-height:1.6}
+  .app-wrap{max-width:900px;margin:0 auto;padding:0 20px 80px}
+  .api-setup{background:var(--surface);border:1px solid rgba(124,92,252,0.3);border-radius:var(--radius);padding:20px 24px;margin-bottom:24px}
+  .api-setup-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .api-dot{width:8px;height:8px;border-radius:50%;background:var(--success)}
+  .api-dot.red{background:#f87171}
+  .api-setup h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:600}
+  .api-row{display:flex;gap:10px}
+  .api-row input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px}
+  .api-row input:focus{outline:none;border-color:var(--accent)}
+  .btn-save{background:var(--accent);color:white;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.15s}
+  .btn-save:hover{opacity:0.85}
+  .api-hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .api-hint a{color:var(--accent2);text-decoration:none}
+  .tools-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:28px}
+  .tool-btn{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 12px;cursor:pointer;transition:all 0.15s;text-align:center}
+  .tool-btn:hover{border-color:var(--border2);background:var(--surface2)}
+  .tool-btn.active{border-color:var(--accent);background:rgba(124,92,252,0.1)}
+  .tool-icon{font-size:22px;margin-bottom:6px}
+  .tool-name{font-size:12px;font-weight:500;color:var(--text)}
+  .tool-desc{font-size:11px;color:var(--muted);margin-top:2px}
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .form-grid.three{grid-template-columns:1fr 1fr 1fr}
+  .field label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em}
+  .field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;appearance:none}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+  .field textarea{resize:vertical;min-height:90px}
+  select option{background:#1c1c27}
+  .btn-generate{width:100%;padding:16px;background:linear-gradient(135deg,var(--accent),#a855f7);color:white;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:0.02em;transition:opacity 0.15s,transform 0.1s}
+  .btn-generate:hover:not(:disabled){opacity:0.9;transform:translateY(-1px)}
+  .btn-generate:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+  .output-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;display:none}
+  .output-card.visible{display:block}
+  .output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .output-header h3{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--success);display:flex;align-items:center;gap:8px}
+  .output-actions{display:flex;gap:8px}
+  .btn-action{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.1s}
+  .btn-action:hover{background:rgba(124,92,252,0.15);border-color:var(--accent)}
+  .output-text{font-size:15px;line-height:1.8;color:var(--text);white-space:pre-wrap;word-break:break-word;min-height:60px}
+  .output-stats{display:flex;gap:16px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+  .stat{font-size:12px;color:var(--muted)}
+  .stat span{color:var(--text);font-weight:500}
+  .cursor{display:inline-block;width:2px;height:16px;background:var(--accent2);margin-left:2px;animation:blink 0.8s infinite;vertical-align:middle}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .history-section{margin-top:32px}
+  .history-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .history-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:border-color 0.1s}
+  .history-item:hover{border-color:var(--border2)}
+  .history-item-header{display:flex;justify-content:space-between;align-items:center}
+  .history-type{font-size:11px;color:var(--accent2);font-weight:500;text-transform:uppercase;letter-spacing:0.05em}
+  .history-time{font-size:11px;color:var(--muted)}
+  .history-topic{font-size:13px;color:var(--text);margin-top:4px}
+  .history-preview{font-size:12px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  footer{text-align:center;padding:30px;border-top:1px solid var(--border);color:var(--muted);font-size:13px}
+  @media(max-width:600px){nav{padding:14px 20px}.hero{padding:50px 20px 35px}.form-grid{grid-template-columns:1fr}.form-grid.three{grid-template-columns:1fr 1fr}.tool-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">Write<span>AI</span></div>
+  <div class="nav-badge">Powered by Groq — Free</div>
+</nav>
+<div class="hero">
+  <div class="hero-tag">AI Writing Tool — 100% Free</div>
+  <h1>Write <em>Anything</em><br>in Seconds</h1>
+  <p>Blog posts, captions, emails, scripts — sab kuch AI se likho instantly.</p>
+</div>
+<div class="app-wrap">
+  <div class="api-setup" id="apiSetup">
+    <div class="api-setup-header">
+      <div class="api-dot red" id="apiDot"></div>
+      <h3 id="apiStatusText">Groq API Key daalo — bilkul free!</h3>
+    </div>
+    <div class="api-row">
+      <input type="password" id="apiKeyInput" placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx" />
+      <button class="btn-save" onclick="saveKey()">Save</button>
+    </div>
+    <p class="api-hint">Free key: <a href="https://console.groq.com" target="_blank">console.groq.com</a> — Sign up → API Keys → Create Key → yahan paste karo.</p>
+  </div>
+  <div class="tools-label">Content type chunao</div>
+  <div class="tool-grid">
+    <div class="tool-btn active" data-tool="blog" onclick="selectTool(this)"><div class="tool-icon">✍️</div><div class="tool-name">Blog Post</div><div class="tool-desc">Long-form article</div></div>
+    <div class="tool-btn" data-tool="instagram" onclick="selectTool(this)"><div class="tool-icon">📸</div><div class="tool-name">Instagram</div><div class="tool-desc">Caption + hashtags</div></div>
+    <div class="tool-btn" data-tool="linkedin" onclick="selectTool(this)"><div class="tool-icon">💼</div><div class="tool-name">LinkedIn</div><div class="tool-desc">Professional post</div></div>
+    <div class="tool-btn" data-tool="youtube" onclick="selectTool(this)"><div class="tool-icon">🎬</div><div class="tool-name">YouTube</div><div class="tool-desc">Video script</div></div>
+    <div class="tool-btn" data-tool="email" onclick="selectTool(this)"><div class="tool-icon">📧</div><div class="tool-name">Email</div><div class="tool-desc">Business email</div></div>
+    <div class="tool-btn" data-tool="twitter" onclick="selectTool(this)"><div class="tool-icon">🐦</div><div class="tool-name">Twitter/X</div><div class="tool-desc">Thread or tweet</div></div>
+    <div class="tool-btn" data-tool="ad" onclick="selectTool(this)"><div class="tool-icon">📢</div><div class="tool-name">Ad Copy</div><div class="tool-desc">Facebook / Google</div></div>
+    <div class="tool-btn" data-tool="product" onclick="selectTool(this)"><div class="tool-icon">🛍️</div><div class="tool-name">Product</div><div class="tool-desc">Description</div></div>
+  </div>
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="field"><label>Topic / Title</label><input type="text" id="topic" placeholder="Masalan: Social media marketing tips" /></div>
+      <div class="field"><label>Language</label><select id="language"><option>English</option><option>Urdu</option><option>Roman Urdu</option><option>Hindi</option><option>Arabic</option></select></div>
+    </div>
+    <div class="form-grid three">
+      <div class="field"><label>Tone</label><select id="tone"><option>Professional</option><option>Casual & Friendly</option><option>Persuasive</option><option>Humorous</option><option>Storytelling</option><option>Inspirational</option></select></div>
+      <div class="field"><label>Length</label><select id="length"><option>Short</option><option>Medium</option><option>Long</option></select></div>
+      <div class="field"><label>Audience</label><select id="audience"><option>General Public</option><option>Business Owners</option><option>Students</option><option>Teenagers</option><option>Professionals</option></select></div>
+    </div>
+    <div class="field" style="margin-bottom:18px;"><label>Extra instructions (optional)</label><textarea id="extra" placeholder="Masalan: SEO keywords include karo, emojis use karo..."></textarea></div>
+    <button class="btn-generate" id="generateBtn" onclick="generateContent()">Generate Content</button>
+  </div>
+  <div class="output-card" id="outputCard">
+    <div class="output-header">
+      <h3><span style="color:var(--success);">✓</span> Content Ready!</h3>
+      <div class="output-actions">
+        <button class="btn-action" onclick="copyOutput()">Copy</button>
+        <button class="btn-action" onclick="generateContent()">Regenerate</button>
+      </div>
+    </div>
+    <div class="output-text" id="outputText"></div>
+    <div class="output-stats" id="outputStats" style="display:none;">
+      <div class="stat">Words: <span id="wordCount">0</span></div>
+      <div class="stat">Characters: <span id="charCount">0</span></div>
+      <div class="stat">Read time: <span id="readTime">0</span> min</div>
+    </div>
+  </div>
+  <div class="history-section" id="historySection" style="display:none;">
+    <div class="history-title">Recent generations</div>
+    <div id="historyList"></div>
+  </div>
+</div>
+<footer>WriteAI — Powered by Groq AI &nbsp;|&nbsp; 100% Free</footer>
+<script>
+let apiKey=localStorage.getItem('writeai_groq_key')||'';
+let currentTool='blog';
+let history=JSON.parse(localStorage.getItem('writeai_history')||'[]');
+const prompts={
+  blog:(t,l,tn,ln,a,e)=>`Write a ${ln} blog post in ${l} about: "${t}"\nTone: ${tn}, Audience: ${a}\n${e?'Extra: '+e:''}\nUse headings, intro, sections, conclusion. 100% original.`,
+  instagram:(t,l,tn,ln,a,e)=>`Write Instagram caption in ${l} for: "${t}"\nTone: ${tn}\n${e||''}\nHook + content + CTA + 15-20 hashtags.`,
+  linkedin:(t,l,tn,ln,a,e)=>`Write LinkedIn post in ${l} about: "${t}"\nTone: ${tn}, Length: ${ln}\n${e||''}\nProfessional, strong hook, end with question.`,
+  youtube:(t,l,tn,ln,a,e)=>`Write YouTube script in ${l} for: "${t}"\nTone: ${tn}, Audience: ${a}\n${e||''}\nHook, intro, sections, CTA, outro.`,
+  email:(t,l,tn,ln,a,e)=>`Write professional email in ${l} about: "${t}"\nTone: ${tn}, Recipient: ${a}\n${e||''}\nSubject line, greeting, body, CTA, sign-off.`,
+  twitter:(t,l,tn,ln,a,e)=>`Write Twitter thread in ${l} about: "${t}"\nTone: ${tn}\n${e||''}\nNumbered tweets (1/, 2/...). Strong hook first.`,
+  ad:(t,l,tn,ln,a,e)=>`Write ad copy in ${l} for: "${t}"\nTone: ${tn}, Target: ${a}\n${e||''}\n3 versions: Facebook, Google, Instagram.`,
+  product:(t,l,tn,ln,a,e)=>`Write product description in ${l} for: "${t}"\nTone: ${tn}, Audience: ${a}\n${e||''}\nHeadline, benefits, features, CTA.`
+};
+function saveKey(){
+  const k=document.getElementById('apiKeyInput').value.trim();
+  if(!k.startsWith('gsk_')){alert('Valid Groq key daalo — gsk_ se shuru honi chahiye!\nconsole.groq.com se lao.');return;}
+  apiKey=k;localStorage.setItem('writeai_groq_key',k);updateApiStatus(true);
+  document.getElementById('apiKeyInput').value='••••••••••••••••••••';
+}
+function updateApiStatus(c){
+  document.getElementById('apiDot').className='api-dot'+(c?'':' red');
+  document.getElementById('apiStatusText').textContent=c?'Groq connected — Ready! (Free)':'Groq API Key daalo — bilkul free!';
+}
+function selectTool(el){document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');currentTool=el.dataset.tool;}
+async function generateContent(){
+  if(!apiKey){alert('Pehle Groq API key save karo!\nconsole.groq.com se free key lao.');return;}
+  const topic=document.getElementById('topic').value.trim();
+  if(!topic){alert('Topic likho!');return;}
+  const l=document.getElementById('language').value,tn=document.getElementById('tone').value,ln=document.getElementById('length').value,a=document.getElementById('audience').value,e=document.getElementById('extra').value;
+  const btn=document.getElementById('generateBtn'),card=document.getElementById('outputCard'),out=document.getElementById('outputText'),stats=document.getElementById('outputStats');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Generating...';
+  card.className='output-card visible';out.innerHTML='<span class="cursor"></span>';stats.style.display='none';
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body:JSON.stringify({model:'llama3-8b-8192',max_tokens:1500,messages:[
+        {role:'system',content:'You are an expert content writer. Create 100% original, human-like content.'},
+        {role:'user',content:prompts[currentTool](topic,l,tn,ln,a,e)}
+      ]})
+    });
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const text=data.choices?.[0]?.message?.content||'Try again.';
+    out.textContent='';let i=0;
+    const s=setInterval(()=>{
+      if(i<text.length){out.textContent+=text[i];i+=Math.floor(Math.random()*4)+1;if(i>text.length)i=text.length;}
+      else{clearInterval(s);out.textContent=text;const w=text.split(/\s+/).length;
+        document.getElementById('wordCount').textContent=w;
+        document.getElementById('charCount').textContent=text.length;
+        document.getElementById('readTime').textContent=Math.max(1,Math.ceil(w/200));
+        stats.style.display='flex';addHistory(topic,currentTool,text);}
+    },12);
+  }catch(e){out.textContent='Error: '+e.message+'\n\nGroq key check karo ya dobara try karo.';}
+  btn.disabled=false;btn.textContent='Generate Content';
+}
+function copyOutput(){const t=document.getElementById('outputText').textContent;navigator.clipboard.writeText(t).then(()=>{const b=event.target;b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);});}
+function addHistory(topic,type,text){history.unshift({topic,type,text,time:new Date().toLocaleTimeString()});if(history.length>10)history=history.slice(0,10);localStorage.setItem('writeai_history',JSON.stringify(history));renderHistory();}
+function renderHistory(){if(!history.length)return;document.getElementById('historySection').style.display='block';document.getElementById('historyList').innerHTML=history.map((h,i)=>`<div class="history-item" onclick="loadH(${i})"><div class="history-item-header"><span class="history-type">${h.type}</span><span class="history-time">${h.time}</span></div><div class="history-topic">${h.topic}</div><div class="history-preview">${h.text.substring(0,80)}...</div></div>`).join('');}
+function loadH(i){const h=history[i];document.getElementById('outputCard').className='output-card visible';document.getElementById('outputText').textContent=h.text;document.getElementById('outputStats').style.display='none';document.getElementById('outputCard').scrollIntoView({behavior:'smooth'});}
+if(apiKey){updateApiStatus(true);document.getElementById('apiKeyInput').value='••••••••••••••••••••';}
+renderHistory();
+</script>
+</body>
+</html>
